@@ -5,57 +5,66 @@ fs.readFile('data.txt', 'utf8', function (err,data) {
         return console.log(err);
     }
   
-    const seatIDs = dataToSeatIDs(data);
-
-    console.log('Phase 1 result: ' + Math.max(...seatIDs));
-
-    seatIDs.sort((a, b) => a - b);
+    const measures = dataToSeatIDs(data);
     
-    const minID = Math.min(...seatIDs);
-
-    for (let i = 0; i < seatIDs.length; i++) {
-
-        if (seatIDs[i] != i + minID) {
-            console.log('Phase 2 result: ' + (i + minID));
-            break;
-        }
-    }
+    console.log('Part 1 result: ' + part1(measures));
+    console.log('Part 2 result: ' + part2(measures));
 });
 
 function dataToSeatIDs(data) {
 
     const lines = data.split('\n');
 
-    let seatIDs = [];
+    let numbers = [];
 
     for (let line in lines) {
 
-        const pattern = [...lines[line].trim()];
+        const number = Number.parseInt(lines[line].trim());
 
-        const row = decryptPattern(pattern, 0, 6, 127, 'F');
-        const seat = decryptPattern(pattern, 7, 9, 7, 'L');
-
-        seatIDs.push(row * 8 + seat);
+        numbers.push(number);
     }
 
-    return seatIDs;
+    return numbers;
 }
 
-function decryptPattern(pattern, startIndex, endIndex, upperLimit, lowerLimitSymbol) {
+function part1(measures) {
 
-    let rowRange = [0, upperLimit];
+    let increased = 0;
 
-    for (let i = startIndex; i <= endIndex; i++) {
+    for (let i = 1; i < measures.length; i++) {
 
-        const symbol = pattern[i];
-        const newLimit = (rowRange[1] - rowRange[0] + 1) / 2;
-
-        if (symbol === lowerLimitSymbol) {
-            rowRange[1] -= newLimit;
-        } else {
-            rowRange[0] += newLimit;
+        if (measures[i] > measures[i - 1]) {
+            increased++;
         }
     }
 
-    return rowRange[0];
+    return increased;
+}
+
+function part2(measures) {
+
+    let before = 0;
+    let now = 0;
+
+    let count = 0;
+
+    for (let i = 2; i < measures.length; i++) {
+
+        const sum = measures[i] + measures[i - 1] + measures[i - 2];
+
+        if (i == 2) {
+            before = sum;
+            continue;
+        }
+
+        now = sum;
+
+        if (now > before) {
+            count++;
+        }
+
+        before = now;
+    }
+
+    return count;
 }
