@@ -5,10 +5,10 @@ fs.readFile('data.txt', 'utf8', function (err,data) {
         return console.log(err);
     }
   
-    const measures = dataToSeatIDs(data);
+    const directions = dataToSeatIDs(data);
     
-    console.log('Part 1 result: ' + part1(measures));
-    console.log('Part 2 result: ' + part2(measures));
+    console.log('Part 1 result: ' + part1(directions));
+    console.log('Part 2 result: ' + part2(directions));
 });
 
 function dataToSeatIDs(data) {
@@ -19,7 +19,7 @@ function dataToSeatIDs(data) {
 
     for (let line in lines) {
 
-        const number = Number.parseInt(lines[line].trim());
+        const number = lines[line].trim();
 
         numbers.push(number);
     }
@@ -27,44 +27,50 @@ function dataToSeatIDs(data) {
     return numbers;
 }
 
-function part1(measures) {
+function part1(directions) {
 
-    let increased = 0;
+    let position = [0, 0];
 
-    for (let i = 1; i < measures.length; i++) {
+    for (let i = 0; i < directions.length; i++) {
 
-        if (measures[i] > measures[i - 1]) {
-            increased++;
+        const direction = directions[i].split(' ');
+
+        const way = direction[0][0];
+        const moveStep = Number.parseInt(direction[1]);
+
+        if (way === 'f') {
+            position[0] += moveStep;
+        } else if (way === 'd') {
+            position[1] += moveStep;
+        } else if (way === 'u') {
+            position[1] -= moveStep;
         }
     }
 
-    return increased;
+    return position[0] * position[1];
 }
 
-function part2(measures) {
+function part2(directions) {
 
-    let before = 0;
-    let now = 0;
+    let position = [0, 0];
+    let aim = 0;
 
-    let count = 0;
+    for (let i = 0; i < directions.length; i++) {
 
-    for (let i = 2; i < measures.length; i++) {
+        const direction = directions[i].split(' ');
 
-        const sum = measures[i] + measures[i - 1] + measures[i - 2];
+        const way = direction[0][0];
+        const moveStep = Number.parseInt(direction[1]);
 
-        if (i == 2) {
-            before = sum;
-            continue;
+        if (way === 'f') {
+            position[0] += moveStep;
+            position[1] += aim * moveStep;
+        } else if (way === 'd') {
+            aim += moveStep;
+        } else if (way === 'u') {
+            aim -= moveStep;
         }
-
-        now = sum;
-
-        if (now > before) {
-            count++;
-        }
-
-        before = now;
     }
 
-    return count;
+    return position[0] * position[1];
 }
