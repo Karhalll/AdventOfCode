@@ -65,7 +65,7 @@ function part2(lines) {
     return oxygenNumber * CO2Number;
 }
 
-function BinaryNumber(lines, digitIndex, first, second) {
+function BinaryNumber(lines, digitIndex, maxDigit, minDigit) {
 
     if (lines.length == 1) {
         return lines[0];
@@ -79,17 +79,17 @@ function BinaryNumber(lines, digitIndex, first, second) {
         const digit = lines[j][digitIndex];
 
         if (currentOccurrences[0] > currentOccurrences[1]) {
-            if (digit === first) {
+            if (digit === maxDigit) {
                 filteredLines.push(lines[j]);
             }
         } else {
-            if (digit === second) {
+            if (digit === minDigit) {
                 filteredLines.push(lines[j]);
             }
         }
     }
 
-    return BinaryNumber(filteredLines, digitIndex + 1, first, second);
+    return BinaryNumber(filteredLines, digitIndex + 1, maxDigit, minDigit);
 }
 
 function occurrence(lines, digitIndex) {
