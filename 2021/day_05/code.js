@@ -7,7 +7,8 @@ fs.readFile('data.txt', 'utf8', function (err,data) {
   
     const coords = dataToCoords(data);
 
-    part1(coords);
+    part1(coords, false);
+    part1(coords, true);
     
 });
 
@@ -32,7 +33,7 @@ function dataToCoords(data) {
     return output;
 }
 
-function part1(coords) {
+function part1(coords, calcDiagonals) {
 
     let map = {};
 
@@ -46,56 +47,23 @@ function part1(coords) {
         const dx = x2 - x1;
         const dy = y2 - y1;
 
-        if (x1 == x2) {
+        const delta = Math.max(Math.abs(dx), Math.abs(dy));
+        const stepX = (dx / Math.abs(dx)) || 0;
+        const stepY = (dy / Math.abs(dy)) || 0;
 
-            let lineRange = [y1, y2];
-            lineRange.sort((a, b) => a - b);
+        if (!calcDiagonals && (stepX != 0 && stepY != 0)) {
+            return false;
+        }
 
-            for (let y = lineRange[0]; y <= lineRange[1]; y++) {
+        for (let d = 0; d <= delta; d++) {
 
-                const key = [x1, y].join(',');
+            const key = [x1 + (stepX * d) , y1 + (stepY * d)].join(',');
 
-                if (key in map) {
-                    map[key] += 1;
-                } else {
-                    map[key] = 1;
-                }   
-            }
-
-            return true;
-        } else if (y1 == y2) {
-
-            let lineRange = [x1, x2];
-            lineRange.sort((a, b) => a - b);
-
-            for (let x = lineRange[0]; x <= lineRange[1]; x++) {
-
-                const key = [x, y1].join(',');
-
-                if (key in map) {
-                    map[key] += 1;
-                } else {
-                    map[key] = 1;
-                }   
-            }
-
-            return true;
-        } else {
-
-            delta = Math.abs(dx);
-            deltaX = dx / Math.abs(dx);
-            deltaY = dy / Math.abs(dy);
-
-            for (let d = 0; d < delta; d++) {
-
-                const key = [x1 + (deltaX * d) , y1 + (deltaY * d)].join(',');
-
-                if (key in map) {
-                    map[key] += 1;
-                } else {
-                    map[key] = 1;
-                }  
-            }
+            if (key in map) {
+                map[key] += 1;
+            } else {
+                map[key] = 1;
+            }  
         }
     });
 
