@@ -1,6 +1,6 @@
 fs = require('fs')
 
-fs.readFile('data_test.txt', 'utf8', function (err,data) {
+fs.readFile('data.txt', 'utf8', function (err,data) {
     if (err) {
         return console.log(err);
     }
@@ -88,7 +88,7 @@ function part1(coords) {
 
             for (let d = 0; d < delta; d++) {
 
-                const key = [x , y1].join(',');
+                const key = [x1 + (deltaX * d) , y1 + (deltaY * d)].join(',');
 
                 if (key in map) {
                     map[key] += 1;
