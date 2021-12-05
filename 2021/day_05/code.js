@@ -1,158 +1,111 @@
 fs = require('fs')
 
-let draw = [];
-
-fs.readFile('data.txt', 'utf8', function (err,data) {
+fs.readFile('data_test.txt', 'utf8', function (err,data) {
     if (err) {
         return console.log(err);
     }
   
-    const bingos = dataToSeatIDs(data);
+    const coords = dataToCoords(data);
 
-    part1(bingos);
+    part1(coords);
     
-    // console.log(bingos);
-    // console.log('Part 2 result: ' + part2(lines));
 });
 
-function dataToSeatIDs(data) {
+function dataToCoords(data) {
 
     const lines = data.split('\n');
 
     let output = [];
-    let bingo = [];
 
-    for (let line in lines) {
+    for (let i in lines) {
 
-        let number = lines[line].trim();
+        const line = lines[i].trim();
 
-        if (line == 0) {
-            draw = number.split(',').map(Number)
-            continue;
-        }
+        let coords = line.split(' -> ');
+        coords = coords.map(ele => {
+            return ele.split(',').map(Number);
+        });
 
-        if (number === ''){
-            if (bingo.length != 0) {
-                output.push(bingo);
-                bingo = [];
-            }
-           
-            continue;
-        }
-
-        bingo.push(number.split('  ').join(',').split(' ').join(',').split(',').map(string => {
-                let obj = {};
-                obj[Number.parseInt(string)] = false;
-                return obj;
-            }));
+        output.push(coords);
     }
-
-    output.push(bingo);
 
     return output;
 }
 
-function part1(bingos) {
-   
-    for (let index in draw) {
+function part1(coords) {
 
-        
-        if (bingos.length == 0) {
-            console.log('stopping');
-            console.log(bingos);
-            break;
-        }
-        
-        const drawnNumber = draw[index];
-        const isWinning = markBingos(bingos, drawnNumber);
+    let map = {};
 
-        if (isWinning.length > 0) {
-            console.log(isWinning);
-            bingos = bingos.filter(function(el, i) {
-                return !(isWinning.indexOf(i) > -1);
-            });
-        }
-    }   
-}
+    coords = coords.filter(function(ele) {
+        const x1 = ele[0][0];
+        const y1 = ele[0][1];
 
-function markBingos(bingos, drawnNumber) {
+        const x2 = ele[1][0];
+        const y2 = ele[1][1];
 
-    let bingosIs = [];
+        const dx = x2 - x1;
+        const dy = y2 - y1;
 
-    for (let bingosI in bingos) {
+        if (x1 == x2) {
 
-        let bingo = bingos[bingosI];
+            let lineRange = [y1, y2];
+            lineRange.sort((a, b) => a - b);
 
-        for (let lineI in bingo) {
-            for (let columnI in bingo[lineI]) {
-                if (drawnNumber in bingo[lineI][columnI]) {
-                    
-                    bingo[lineI][columnI][drawnNumber] = true;
-                
-                    let isWinningBingo = checkBingo(bingo, lineI, columnI);       
-                    if (isWinningBingo) {
-                        calculateBingo(bingo, drawnNumber);
-                        bingosIs.push(Number.parseInt(bingosI));
-                    }
-                }
+            for (let y = lineRange[0]; y <= lineRange[1]; y++) {
+
+                const key = [x1, y].join(',');
+
+                if (key in map) {
+                    map[key] += 1;
+                } else {
+                    map[key] = 1;
+                }   
+            }
+
+            return true;
+        } else if (y1 == y2) {
+
+            let lineRange = [x1, x2];
+            lineRange.sort((a, b) => a - b);
+
+            for (let x = lineRange[0]; x <= lineRange[1]; x++) {
+
+                const key = [x, y1].join(',');
+
+                if (key in map) {
+                    map[key] += 1;
+                } else {
+                    map[key] = 1;
+                }   
+            }
+
+            return true;
+        } else {
+
+            delta = Math.abs(dx);
+            deltaX = dx / Math.abs(dx);
+            deltaY = dy / Math.abs(dy);
+
+            for (let d = 0; d < delta; d++) {
+
+                const key = [x , y1].join(',');
+
+                if (key in map) {
+                    map[key] += 1;
+                } else {
+                    map[key] = 1;
+                }  
             }
         }
-    }
+    });
 
-    return bingosIs;
-}
+    let count = 0;
 
-function checkBingo(bingo, lineI, columnI) {
-
-    const lineCheck = checkLine(bingo, lineI);
-    const columnCheck = checkColumn(bingo, columnI);
-    
-    if (lineCheck === true || columnCheck === true) {
-        return true;
-    }
-
-    return false;
-}
-
-function checkLine(bingo, lineI) {
-    for (let numberI in bingo[lineI]) {
-
-        let numObj = bingo[lineI][numberI];
-        if (numObj[Object.keys(numObj)[0]] == false) {
-            return false;
+    Object.values(map).forEach(ele => {
+        if (ele >= 2) {
+            count++;
         }
-    }
+    });
 
-    return true;
-}
-
-function checkColumn(bingo, columnI) {
-    for (let line in bingo) {
-
-        let numObj = bingo[line][columnI];
-        if (numObj[Object.keys(numObj)[0]] == false) {
-            return false;
-        }
-    }
-
-    return true;
-}
-
-function calculateBingo(bingo, drawnNumber) {
-
-    let sum = 0;
-
-    for (let lineI in bingo) {
-        for (let columnI in bingo[lineI]) {
-
-            const numObj = bingo[lineI][columnI];
-
-            if (numObj[Object.keys(numObj)[0]] == false) {
-                
-                sum += Number.parseInt(Object.keys(numObj)[0]);
-            }
-        }
-    }
-
-    console.log("answer: " + (sum * drawnNumber) + ' sum: ' + sum + ' num: ' + drawnNumber);
+    console.log(count);
 }
