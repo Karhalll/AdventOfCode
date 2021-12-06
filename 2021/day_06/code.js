@@ -1,79 +1,54 @@
 fs = require('fs')
 
-fs.readFile('data.txt', 'utf8', function (err,data) {
+const degRepDays = 8;
+const daysAfterRepro = 6;
+const daysOfRepro = 256;
+
+fs.readFile('data_test.txt', 'utf8', function (err,data) {
     if (err) {
         return console.log(err);
     }
-  
-    const coords = dataToCoords(data);
 
-    part1(coords, false);
-    part1(coords, true);
-    
+    part1(data, 1);  
 });
 
-function dataToCoords(data) {
+function part1(data, days) {
 
-    const lines = data.split('\n');
+    
+    let fishes = data.split(',').map(Number);
+    console.log('Initial State: ' + fishes);
 
-    let output = [];
+    let fishCount = 5;
 
-    for (let i in lines) {
+    let fishSchool = [[...fishes]];
 
-        const line = lines[i].trim();
+    while (days <= 80) {
 
-        let coords = line.split(' -> ');
-        coords = coords.map(ele => {
-            return ele.split(',').map(Number);
-        });
+        let range = fishes.length;
 
-        output.push(coords);
+        for (let j = 0; j < range; j++) {
+
+            if (fishes[j] == 0) {
+                fishes.push(degRepDays);
+                fishes[j] = daysAfterRepro;
+            } else {
+                fishes[j] -= 1;
+            }
+        }
+
+        // console.log('Day: ' + days);
+         console.log('Day ' + days + ': ' + fishes.length);
+        // console.log('Day ' + days + ': ' + fishes.toString());
+        days++;
     }
 
-    return output;
-}
+    // for (let i = 0; i < 80; i = i + 8) {
 
-function part1(coords, calcDiagonals) {
+    //     fishCount = fishCount * fishCount;
+    //     console.log('FOR Day ' + days + ': ' + fishCount);
+    // }
 
-    let map = {};
 
-    coords = coords.filter(function(ele) {
-        const x1 = ele[0][0];
-        const y1 = ele[0][1];
 
-        const x2 = ele[1][0];
-        const y2 = ele[1][1];
-
-        const dx = x2 - x1;
-        const dy = y2 - y1;
-
-        const delta = Math.max(Math.abs(dx), Math.abs(dy));
-        const stepX = (dx / Math.abs(dx)) || 0;
-        const stepY = (dy / Math.abs(dy)) || 0;
-
-        if (!calcDiagonals && (stepX != 0 && stepY != 0)) {
-            return false;
-        }
-
-        for (let d = 0; d <= delta; d++) {
-
-            const key = [x1 + (stepX * d) , y1 + (stepY * d)].join(',');
-
-            if (key in map) {
-                map[key] += 1;
-            } else {
-                map[key] = 1;
-            }  
-        }
-    });
-
-    let count = 0;
-
-    Object.values(map).forEach(ele => {
-        if (ele >= 2) {
-            count++;
-        }
-    });
-
-    console.log(count);
+    console.log("Fish Total: " + fishes.length);
 }
