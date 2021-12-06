@@ -1,111 +1,154 @@
 fs = require('fs')
 
+let draw = [];
+
 fs.readFile('data.txt', 'utf8', function (err,data) {
     if (err) {
         return console.log(err);
     }
   
-    const lines = dataToSeatIDs(data);
-    
-    console.log('Part 1 result: ' + part1(lines));
-    console.log('Part 2 result: ' + part2(lines));
+    const bingos = dataToSeatIDs(data);
+
+    part1(bingos);
 });
 
 function dataToSeatIDs(data) {
 
     const lines = data.split('\n');
 
-    let numbers = [];
+    let output = [];
+    let bingo = [];
 
     for (let line in lines) {
 
-        const number = lines[line].trim();
+        let number = lines[line].trim();
 
-        numbers.push(number);
+        if (line == 0) {
+            draw = number.split(',').map(Number)
+            continue;
+        }
+
+        if (number === ''){
+            if (bingo.length != 0) {
+                output.push(bingo);
+                bingo = [];
+            }
+           
+            continue;
+        }
+
+        bingo.push(number.split('  ').join(',').split(' ').join(',').split(',').map(string => {
+                let obj = {};
+                obj[Number.parseInt(string)] = false;
+                return obj;
+            }));
     }
 
-    return numbers;
+    output.push(bingo);
+
+    return output;
 }
 
-function part1(lines) {
+function part1(bingos) {
+   
+    for (let index in draw) {
 
-    let occurrences = [];
+        
+        if (bingos.length == 0) {
+            break;
+        }
+        
+        const drawnNumber = draw[index];
+        const isWinning = markBingos(bingos, drawnNumber);
 
-    for (let i = 0; i < lines[0].length; i++) {
-        occurrences.push(occurrence(lines, i));
-    }
+        if (isWinning.length > 0) {
+            bingos = bingos.filter(function(el, i) {
+                return !(isWinning.indexOf(i) > -1);
+            });
+        }
+    }   
+}
 
-    let binaryRates = ['',''];
+function markBingos(bingos, drawnNumber) {
 
-    for (let i = 0; i < occurrences.length; i++) {
+    let bingosIs = [];
 
-        if (occurrences[i][0] > occurrences[i][1]) {
-            binaryRates[0] += '0';
-            binaryRates[1] += '1';
-        } else {
-            binaryRates[0] += '1';
-            binaryRates[1] += '0';
+    for (let bingosI in bingos) {
+
+        let bingo = bingos[bingosI];
+
+        for (let lineI in bingo) {
+            for (let columnI in bingo[lineI]) {
+                if (drawnNumber in bingo[lineI][columnI]) {
+                    
+                    bingo[lineI][columnI][drawnNumber] = true;
+                
+                    let isWinningBingo = checkBingo(bingo, lineI, columnI);       
+                    if (isWinningBingo) {
+                        calculateBingo(bingo, drawnNumber);
+                        bingosIs.push(Number.parseInt(bingosI));
+                    }
+                }
+            }
         }
     }
 
-    let gamaRate = Number.parseInt(binaryRates[0], 2);
-    let epsilonRate = Number.parseInt(binaryRates[1], 2);
-
-    return gamaRate * epsilonRate;
+    return bingosIs;
 }
 
-function part2(lines) {
+function checkBingo(bingo, lineI, columnI) {
 
-    const oxygenBinary = BinaryNumber(lines, 0, '0', '1');
-    const CO2Binary = BinaryNumber(lines, 0, '1', '0');
-
-    const oxygenNumber = Number.parseInt(oxygenBinary, 2);
-    const CO2Number = Number.parseInt(CO2Binary, 2);
-
-    return oxygenNumber * CO2Number;
-}
-
-function BinaryNumber(lines, digitIndex, maxDigit, minDigit) {
-
-    if (lines.length == 1) {
-        return lines[0];
-    }
-
-    let currentOccurrences = occurrence(lines, digitIndex);
-    let filteredLines = [];
-
-    for (let j = 0; j < lines.length; j++) {
-
-        const digit = lines[j][digitIndex];
-
-        if (currentOccurrences[0] > currentOccurrences[1]) {
-            if (digit === maxDigit) {
-                filteredLines.push(lines[j]);
-            }
-        } else {
-            if (digit === minDigit) {
-                filteredLines.push(lines[j]);
-            }
-        }
-    }
-
-    return BinaryNumber(filteredLines, digitIndex + 1, maxDigit, minDigit);
-}
-
-function occurrence(lines, digitIndex) {
+    const lineCheck = checkLine(bingo, lineI);
+    const columnCheck = checkColumn(bingo, columnI);
     
-    let occurrence = [0,0];
+    if (lineCheck === true || columnCheck === true) {
+        return true;
+    }
 
-    for (let i = 0; i < lines.length; i++) {
+    return false;
+}
 
-        const digit = lines[i][digitIndex];
+function checkLine(bingo, lineI) {
+    for (let numberI in bingo[lineI]) {
 
-        if (digit === '0') {
-            occurrence[0] += 1;
-        } else if (digit === '1') {
-            occurrence[1] += 1;
+        let numObj = bingo[lineI][numberI];
+        if (numObj[Object.keys(numObj)[0]] == false) {
+            return false;
         }
     }
 
-    return occurrence;
+    return true;
+}
+
+function checkColumn(bingo, columnI) {
+    for (let line in bingo) {
+
+        let numObj = bingo[line][columnI];
+        if (numObj[Object.keys(numObj)[0]] == false) {
+            return false;
+        }
+    }
+
+    return true;
+}
+
+function calculateBingo(bingo, drawnNumber) {
+
+    let sum = 0;
+
+    for (let lineI in bingo) {
+        for (let columnI in bingo[lineI]) {
+
+            const numObj = bingo[lineI][columnI];
+
+            if (numObj[Object.keys(numObj)[0]] == false) {
+                
+                sum += Number.parseInt(Object.keys(numObj)[0]);
+            }
+        }
+    }
+
+    console.log(
+        "Bingo score: " + (sum * drawnNumber) + ' (sum: ' + sum + ' * num: ' + drawnNumber + ')'
+    );
 }
