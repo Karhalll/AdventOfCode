@@ -17,8 +17,8 @@ function part1and2() {
     let basins = [];
 
     hightArr.forEach((line, lineI) => {
-        line.forEach((hight, columnI) => { 
-               
+        line.forEach((hight, columnI) => {
+    
             if (isLowPoint(hight, lineI, columnI)) {
                 riskLvlSum += 1 + hight;
 
