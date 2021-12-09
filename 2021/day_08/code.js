@@ -29,9 +29,7 @@ function part1() {
     }, 0));
 }
 
-function part2() {
-
-   
+function part2() { 
 
     const digitPatterns = {
         abcefg: 0,
@@ -50,8 +48,7 @@ function part2() {
 
         const testEntries = line.split('|')[0].trim().split(' ');
 
-        const decMap = decryptEntries(testEntries);
-        const switchedMap = getSwitchedMap(decMap);
+        const switchedMap = getSwitchedMap(decryptEntries(testEntries));
 
         let digitArr = line.split('|')[1].trim().split(' ').map(pattern => {
 
