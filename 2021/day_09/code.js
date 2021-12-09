@@ -9,43 +9,28 @@ const hightArr = lines.map(line => {
   
 let tempBasin = {};
 
-part1();
-part2();
+part1and2();
 
-function part1() {
+function part1and2() {
     
-    let output = 0;
-
-    for (let line = 0; line < hightArr.length; line++) {
-        for (let column = 0; column < hightArr[line].length; column++) {
-
-            const hight = hightArr[line][column];
-            if (isLowPoint(hight, line, column)) {
-                output += 1 + hight;
-            }
-        }
-    }
-    
-    console.log("Part 1: " + output);
-}
-
-function part2() { 
-
+    let riskLvlSum = 0;
     let basins = [];
 
-    for (let line = 0; line < hightArr.length; line++) {
-        for (let column = 0; column < hightArr[line].length; column++) {
+    hightArr.forEach((line, lineI) => {
+        line.forEach((hight, columnI) => { 
+               
+            if (isLowPoint(hight, lineI, columnI)) {
+                riskLvlSum += 1 + hight;
 
-            const hight = hightArr[line][column];
-            if (isLowPoint(hight, line, column)) {
                 tempBasin = {};
-                basins.push(calculateBasin(line, column));
+                basins.push(calculateBasin(lineI, columnI));
             }
-        }
-    }
-
-    basins.sort((a, b) => b - a);
+        });  
+    });
     
+    console.log("Part 1: " + riskLvlSum);
+    
+    basins.sort((a, b) => b - a); 
     console.log("Part 2: " + basins[0] * basins[1] * basins[2]);
 }
 
