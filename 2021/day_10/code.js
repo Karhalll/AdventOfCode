@@ -6,18 +6,27 @@ let lines = data.split('\n').map(a => a.trim());
 const opens = ['(', '[', '{', '<'];
 const close = [')', ']', '}', '>'];
 
+//PartOne
+const scoreTable = {
+    ')': 3,
+    ']': 57,
+    '}': 1197,
+    '>': 25137
+}
+
+//PartTwo
+const bracketsValues =  {
+    ')': 1,
+    ']': 2,
+    '}': 3,
+    '>': 4
+};
+
 
 part1();
 part2();
 
-function part1() { 
-    
-    const scoreTable = {
-        ')': 3,
-        ']': 57,
-        '}': 1197,
-        '>': 25137
-    }
+function part1() {   
 
     let score = {
         ')': 0,
@@ -31,7 +40,7 @@ function part1() {
         let tempChunk = [];
 
         for (let bracket of line) {
-            if (opens.indexOf(bracket) > -1) {
+            if (isOpenBracket(bracket)) {
                 tempChunk.push(bracket);
             } else {
                 
@@ -57,12 +66,23 @@ function part1() {
 
 function part2() {
 
-    const incompleteLines = lines.filter((line => {
+    const incompleteLines = getIncompleteLines();
+
+    let scores = linesScores(incompleteLines);
+
+    scores.sort((a, b) => a - b);
+    
+    const middleIndex = (scores.length - 1) / 2;
+    console.log("Part 2: " + scores[middleIndex]);   
+}
+
+function getIncompleteLines() {
+    return lines.filter((line => {
 
         let tempChunk = [];
 
         for (let bracket of line) {
-            if (opens.indexOf(bracket) > -1) {
+            if (isOpenBracket(bracket)) {
                 tempChunk.push(bracket);
             } else {
                 
@@ -77,13 +97,9 @@ function part2() {
         
         return true;
     }));
+}
 
-    const scoreTable = {
-        ')': 1,
-        ']': 2,
-        '}': 3,
-        '>': 4
-    }
+function linesScores(incompleteLines) {
 
     let scores = [];
 
@@ -92,12 +108,13 @@ function part2() {
         let tempChunk = [];
 
         for (let bracket of line) {
-            if (opens.indexOf(bracket) > -1) {
+            if (isOpenBracket(bracket)) {
                 tempChunk.push(bracket);
             } else {
+
+                let lastTempBracket = tempChunk[tempChunk.length - 1];
                 
-                const i = close.indexOf(bracket);
-                if (tempChunk[tempChunk.length - 1] === opens[i]) {
+                if (isPair(lastTempBracket, bracket)) {
                     tempChunk.pop();
                 } else {
                     break;
@@ -116,13 +133,23 @@ function part2() {
 
         for (let bracket of comChunks) {
             score *= 5;
-            score += scoreTable[bracket];
+            score += bracketsValues[bracket];
         }
 
         scores.push(score);
     }
 
-    scores.sort((a, b) => a - b);
+    return scores;
+}
 
-    console.log("Part 2: " + scores[(scores.length - 1) / 2]);   
+function flip(bracket) {
+    return opens[close.indexOf(bracket)];
+}
+
+function isOpenBracket(bracket) {
+    return opens.indexOf(bracket) > -1;
+}
+
+function isPair(firstBracket, secondBracket) {
+    return firstBracket === flip(secondBracket);
 }

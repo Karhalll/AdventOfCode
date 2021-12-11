@@ -1,11 +1,13 @@
 fs = require('fs')
 
-let data = fs.readFileSync('data.txt', {encoding:'utf8'});
+let data = fs.readFileSync('data_test.txt', {encoding:'utf8'});
 let lines = data.split('\n').map(a => a.trim());
 
 const hightArr = lines.map(line => {
     return line.split('').map(Number);
 });
+
+console.log(hightArr);
   
 let tempBasin = {};
 
