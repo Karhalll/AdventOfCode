@@ -1,13 +1,18 @@
-fs = require('fs')
-let data = fs.readFileSync('data.txt', {encoding:'utf8'});
+Array.prototype.hasCave = function(cave) {
+    return this[0] === cave || this[1] === cave;
+}
 
-const pathArrs = data
-    .split('\n')
-    .map(a => a.trim())
-    .map(line => {
-        return line.split('-');
-    })
-;
+Array.prototype.getOtherCave = function(cave) {
+    if (this[0] === cave) {
+        return this [1];
+    }
+    return this[0];
+}
+
+fs = require('fs')
+const DATA = fs.readFileSync('data.txt', {encoding:'utf8'});
+
+const CONNECTIONS = DATA.split('\n').map(a => a.trim()).map(l => l.split('-'));
 
 let pathCount = 0;
 
@@ -16,7 +21,7 @@ part2();
 
 function part1() {
 
-    calculatePaths();
+    findConnectedCaves('start', [], true);
     console.log("Part 1: " + pathCount);
 }
 
@@ -24,90 +29,54 @@ function part2() {
 
     pathCount = 0;
 
-    calculatePaths(true);
+    findConnectedCaves('start', [], false);
     console.log("Part 2: " + pathCount);
 }
 
-function calculatePaths(part2) {
-    for (let pathArr of pathArrs) {
+function findConnectedCaves(currentCave, visitedSmallCaves, someSmallCaveVisitedTwice) {
 
-        let next;
+    for (let connection of CONNECTIONS) {
 
-        if (pathArr[0] === 'start') {
-            next = pathArr[1];
-        } else if (pathArr[1] === 'start') {
-            next = pathArr[0];
-        } else {
-            continue;
+        if (connection.hasCave(currentCave)) {
+
+            const connectedCave = connection.getOtherCave(currentCave);
+            tryCave(connectedCave, [...visitedSmallCaves], someSmallCaveVisitedTwice);
         }
-
-        if (part2) {
-            nextStep2(next, [], false);
-        } else {
-            nextStep(next, []);
-        }
-    }
+    }   
 }
 
-function nextStep(next, visits) {
+function tryCave(cave, visitedSmallCaves, someSmallCaveVisitedTwice) {
 
-    if (!canContinue(next)) return;
+    if (isEndOrStart(cave)) return;
+
+    if (isSmallCave(cave)) {
+
+        if (visitedSmallCaves.indexOf(cave) > -1) { // is already visited small cave
+
+            if (someSmallCaveVisitedTwice) return;
+
+            someSmallCaveVisitedTwice = true; 
+        }
+
+        visitedSmallCaves.push(cave);
+    }
     
-    if (next === next.toLowerCase()) {
-
-        if (visits.indexOf(next) > -1) return;
-
-        visits.push(next);
-    }
-
-    for (let pathArr of pathArrs) {
-
-        if (pathArr[0] === next) {     
-            nextStep(pathArr[1], [...visits]);
-        }
-        if (pathArr[1] === next) {       
-            nextStep(pathArr[0], [...visits]);
-        }
-    } 
+    findConnectedCaves(cave, [...visitedSmallCaves], someSmallCaveVisitedTwice);
 }
 
 
-function nextStep2(next, visits, smallCaveVisitedTwice) {
 
-    if (!canContinue(next)) return;
+function isEndOrStart(cave) {
+    if (cave === 'start') return true;
 
-    if (next === next.toLowerCase()) {
-
-        if (visits.indexOf(next) > -1) {
-
-            if (smallCaveVisitedTwice) return;
-
-            smallCaveVisitedTwice = true;
-
-        }
-
-        visits.push(next);
-    }
-
-    for (let pathArr of pathArrs) {
-
-        if (pathArr[0] === next) {   
-            nextStep2(pathArr[1], [...visits], smallCaveVisitedTwice);
-        }
-
-        if (pathArr[1] === next) {    
-            nextStep2(pathArr[0], [...visits], smallCaveVisitedTwice);
-        }
-    } 
-}
-
-function canContinue(next) {
-    if (next === 'start') return false;
-
-    if (next === 'end') {
+    if (cave === 'end') {
         pathCount++;
-        return false;
+        return true;
     }
 
-    return true;
+    return false;
+}
+
+function isSmallCave(cave) {
+    return cave === cave.toLowerCase();
 }
