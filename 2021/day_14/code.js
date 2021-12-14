@@ -1,9 +1,8 @@
 fs = require('fs')
 const DATA = fs.readFileSync('data.txt', {encoding:'utf8'});
-
 const LINES = DATA.split('\n').map(a => a.trim())
 
-const TEMPLATE = getTemplate();
+const TEMPLATE = LINES[0];
 const RULES = getRules();
 
 let charsCount;
@@ -13,7 +12,7 @@ part2();
 
 function part1() {
 
-    charsCount = getDefaultLetterCount();
+    charsCount = defaultLetterCount();
     let polymer = getDefaultPolymer();
 
     polymer = simXPolymerization(polymer, 10);
@@ -23,7 +22,7 @@ function part1() {
 
 function part2() {
 
-    charsCount = getDefaultLetterCount();
+    charsCount = defaultLetterCount();
     let polymer = getDefaultPolymer();
 
     polymer = simXPolymerization(polymer, 40);
@@ -43,7 +42,7 @@ function simXPolymerization(polymer, cycles) {
 
 function polymerization(polymer) {
 
-    let newRules = createEmpty();
+    let newPolymer = emptyPolymer();
 
     for (let pair of Object.keys(polymer)) {
 
@@ -53,76 +52,45 @@ function polymerization(polymer) {
     for (let pair of Object.keys(polymer)) {
 
         let newPairs = getNewTwoPairs(pair, polymer[pair].char);
-
         
-        for (let i in newPairs) { 
-
-            let newPairKey = newPairs[i]; 
-
-            let count = polymer[pair].count;
-
-            newRules[newPairKey].count += count;
-        }
+        newPolymer[newPairs[0]].count += polymer[pair].count;
+        newPolymer[newPairs[1]].count += polymer[pair].count;
     }
 
-    return newRules;
+    return newPolymer;
 }
 
 function answerForPart(part, charsCount) {
-    let counts = []
-
-    for (let pair of Object.keys(charsCount)) {
-
-        counts.push(charsCount[pair]);
-    }
-
-    let sortedCounts = counts.sort((a, b) => a - b);
+  
+    let sortedCounts = Object.values(charsCount).sort((a, b) => a - b);
 
     console.log(part + ": " + (sortedCounts[sortedCounts.length - 1] - sortedCounts[0]));
 }
 
-function getTemplate() {
-    return LINES[0];
-}
-
 function getRules() {
 
-    let temp = [];
-    for (let i = 2; i < LINES.length; i++) {
-        temp.push(LINES[i]);
-    }
-
-    return temp.map(a => a.split(" -> "));
+    return LINES.filter((a,i) => i > 1).map(a => a.split(" -> "));
 }
 
 function getDefaultPolymer() {
 
-    let rules = {};
-
-    for (let rule of RULES) {
-
-        let ruleObject = createRule(rule);
-        
-        let key = getKeyFromRule(ruleObject);
-
-        rules[key] = ruleObject[key];
-    }
+    let newPolymer = emptyPolymer();
 
     for (let i = 0; i < TEMPLATE.length - 1; i++) {
 
         let pair = TEMPLATE[i] + TEMPLATE[i + 1];
 
-        if (pair in rules) {
-            rules[pair].count += 1;
+        if (pair in newPolymer) {
+            newPolymer[pair].count += 1;
         } else {
-            rules[pair].count = 1;
+            newPolymer[pair].count = 1;
         }
     }
 
-    return rules;
+    return newPolymer;
 }
 
-function createRule(pair) {
+function createPairObj(pair) {
 
     return {
         [pair[0]]: {
@@ -137,12 +105,7 @@ function getNewTwoPairs(key, char) {
     return [key[0] + char, char + key[1]];
 }
 
-function getKeyFromRule(rule) {
-
-    return Object.keys(rule)[0];
-}
-
-function getDefaultLetterCount() {
+function defaultLetterCount() {
     let output = {};
 
     for (let rule of RULES) {
@@ -159,17 +122,17 @@ function getDefaultLetterCount() {
     return output;
 }
 
-function createEmpty() {
-    let rules = {};
+function emptyPolymer() {
+
+    let emptyPolymer = {};
 
     for (let rule of RULES) {
 
-        let ruleObject = createRule(rule);
-        
-        let key = getKeyFromRule(ruleObject);
+        let pairObj = createPairObj(rule); 
+        let key = Object.keys(pairObj)[0];
 
-        rules[key] = ruleObject[key];
+        emptyPolymer[key] = pairObj[key];
     }
 
-    return rules;
+    return emptyPolymer;
 }
