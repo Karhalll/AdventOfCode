@@ -1,9 +1,5 @@
 fs = require('fs')
 const DATA = fs.readFileSync('data.txt', {encoding:'utf8'});
-const LINES = DATA.split('\n').map(a => a.trim())
-
-const GRID = LINES.map(line => line.split('').map(Number));
-
 
 class BinaryHeap {
     constructor(scoreFunction) {
@@ -112,141 +108,43 @@ class BinaryHeap {
     }
 }
 
-
-var astar = {
-    init: function(grid) {
-        for(var x = 0; x < grid.length; x++) {
-            for(var y = 0; y < grid[x].length; y++) {
-                var cost = grid[x][y];
-                grid[x][y] = {};
-                var node = grid[x][y];
-
-                node.pos = {};
-                node.pos.x = x;
-                node.pos.y = y;
-                node.f = 0;
-                node.g = 0;
-                node.h = 0;
-                node.cost = cost;
-                node.visited = false;
-                node.closed = false;
-                node.parent = null;
-            }
-        }
-    },
-    heap: function() {
-        return new BinaryHeap(function(node) {
-            return node.f;
-        });
-    },
-    search: function(grid) {
-        astar.init(grid);
-
-        let start = grid[0][0];
-        let end = grid[grid.length - 1][grid[0].length - 1];
-        
-        let heuristic = astar.manhattan;
-
-        var openHeap = astar.heap();
-
-        openHeap.push(start);
-
-        while(openHeap.size() > 0) {
-
-            var currentNode = openHeap.pop();
-
-            if(currentNode === end) {
-                var curr = currentNode;
-                var ret = [];
-                while(curr.parent) {
-                    ret.push(curr);
-                    curr = curr.parent;
-                }
-                return ret.reverse();
-            }
-
-            currentNode.closed = true;
-
-            var neighbors = astar.neighbors(grid, currentNode);
-
-            for(var i = 0; i < neighbors.length; i++) {
-                var neighbor = neighbors[i];
-
-                if(neighbor.closed) {
-                    continue;
-                }
-
-                var gScore = currentNode.g + neighbor.cost;
-                var beenVisited = neighbor.visited;
-
-                if(!beenVisited || gScore < neighbor.g) {
-
-                    neighbor.visited = true;
-                    neighbor.parent = currentNode;
-                    neighbor.h = neighbor.h || heuristic(neighbor.pos, end.pos);
-                    neighbor.g = gScore;
-                    neighbor.f = neighbor.g + neighbor.h;
-
-                    if (!beenVisited) {
-                        openHeap.push(neighbor);
-                    }
-                    else {
-                        openHeap.rescoreElement(neighbor);
-                    }
-                }
-            }
-        }
-
-        return [];
-    },
-    manhattan: function(pos0, pos1) {
-
-        var d1 = Math.abs (pos1.x - pos0.x);
-        var d2 = Math.abs (pos1.y - pos0.y);
-        return d1 + d2;
-    },
-    neighbors: function(grid, node) {
-
-        var ret = [];
-        var x = node.pos.x;
-        var y = node.pos.y;
-
-        if(grid[x-1] && grid[x-1][y]) {
-            ret.push(grid[x-1][y]);
-        }
-
-        if(grid[x+1] && grid[x+1][y]) {
-            ret.push(grid[x+1][y]);
-        }
-
-        if(grid[x] && grid[x][y-1]) {
-            ret.push(grid[x][y-1]);
-        }
-
-        if(grid[x] && grid[x][y+1]) {
-            ret.push(grid[x][y+1]);
-        }
-
-        return ret;
-    }
-};
-
-
 part1();
 part2();
 
 function part1() {
 
-    let path = astar.search(GRID);
+    const LINES = DATA.split('\n').map(a => a.trim())
+    const GRID = LINES.map(line => line.split('').map(Number));
+
+    let path = search(GRID);
 
     answer(path, 'Part 1');
 }
 
 function part2() {
 
+    const GRID_SIZE = 5;
+
+    let newLines = getScalingSquareGridLines(GRID_SIZE);
+    const LARGE_GRID = newLines.map(line => line.split('').map(Number));
+
+    let path = search(LARGE_GRID);
+
+    answer(path, 'Part 2'); 
+}
+
+function answer(path, part) {
+
+    let costSum = path.reduce((sum , node) => sum += node.cost,0);
+
+    console.log(part + ": " + costSum);
+}
+
+function getScalingSquareGridLines(gridSize) {
+
     let newLines = [];
 
-    for (let gX = 0; gX < 5; gX++) {
+    for (let gX = 0; gX < gridSize; gX++) {
 
         DATA.split('\n')
             .map(a => a.trim())
@@ -254,7 +152,7 @@ function part2() {
 
                 let outputLine = '';
 
-                for (let gY = 0; gY < 5; gY++) {
+                for (let gY = 0; gY < gridSize; gY++) {
                     
                     let newLineNumbers = '';
 
@@ -277,16 +175,126 @@ function part2() {
         });
     }
 
-    const LARGE_GRID = newLines.map(line => line.split('').map(Number));
-
-    let path = astar.search(LARGE_GRID);
-
-    answer(path, 'Part 2'); 
+    return newLines
 }
 
-function answer(path, part) {
+function init(grid) {
+    for(var x = 0; x < grid.length; x++) {
+        for(var y = 0; y < grid[x].length; y++) {
+            var cost = grid[x][y];
+            grid[x][y] = {};
+            var node = grid[x][y];
 
-    let costSum = path.reduce((sum , node) => sum += node.cost,0);
+            node.pos = {};
+            node.pos.x = x;
+            node.pos.y = y;
+            node.f = 0;
+            node.g = 0;
+            node.h = 0;
+            node.cost = cost;
+            node.visited = false;
+            node.closed = false;
+            node.parent = null;
+        }
+    }
+}
 
-    console.log(part + ": " + costSum);
+function heap() {
+    return new BinaryHeap(function(node) {
+        return node.f;
+    });
+}
+
+function search(grid) {
+
+    init(grid);
+
+    let start = grid[0][0];
+    let end = grid[grid.length - 1][grid[0].length - 1];
+    
+    let heuristic = manhattan;
+
+    var openHeap = heap();
+
+    openHeap.push(start);
+
+    while(openHeap.size() > 0) {
+
+        var currentNode = openHeap.pop();
+
+        if(currentNode === end) {
+            var curr = currentNode;
+            var ret = [];
+            while(curr.parent) {
+                ret.push(curr);
+                curr = curr.parent;
+            }
+            return ret.reverse();
+        }
+
+        currentNode.closed = true;
+
+        var neighbors = getNeighbors(grid, currentNode);
+
+        for(var i = 0; i < neighbors.length; i++) {
+            var neighbor = neighbors[i];
+
+            if(neighbor.closed) {
+                continue;
+            }
+
+            var gScore = currentNode.g + neighbor.cost;
+            var beenVisited = neighbor.visited;
+
+            if(!beenVisited || gScore < neighbor.g) {
+
+                neighbor.visited = true;
+                neighbor.parent = currentNode;
+                neighbor.h = neighbor.h || heuristic(neighbor.pos, end.pos);
+                neighbor.g = gScore;
+                neighbor.f = neighbor.g + neighbor.h;
+
+                if (!beenVisited) {
+                    openHeap.push(neighbor);
+                }
+                else {
+                    openHeap.rescoreElement(neighbor);
+                }
+            }
+        }
+    }
+
+    return [];
+}
+
+function manhattan(pos0, pos1) {
+
+    var d1 = Math.abs (pos1.x - pos0.x);
+    var d2 = Math.abs (pos1.y - pos0.y);
+    return d1 + d2;
+}
+
+function getNeighbors(grid, node) {
+
+    var ret = [];
+    var x = node.pos.x;
+    var y = node.pos.y;
+
+    if(grid[x-1] && grid[x-1][y]) {
+        ret.push(grid[x-1][y]);
+    }
+
+    if(grid[x+1] && grid[x+1][y]) {
+        ret.push(grid[x+1][y]);
+    }
+
+    if(grid[x] && grid[x][y-1]) {
+        ret.push(grid[x][y-1]);
+    }
+
+    if(grid[x] && grid[x][y+1]) {
+        ret.push(grid[x][y+1]);
+    }
+
+    return ret;
 }
