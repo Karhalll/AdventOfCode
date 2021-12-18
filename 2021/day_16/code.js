@@ -11,6 +11,8 @@ class Packet {
 
     versionSum;
 
+    value;
+
     constructor(header) {
 
         this.version = header.version;
@@ -21,12 +23,11 @@ class Packet {
 }
 
 class NumberPacket extends Packet {
-    literalValue;
 
     constructor(header, literalValue) {
         super(header);
 
-        this.literalValue = literalValue;
+        this.value = literalValue;
     }
 }
 
@@ -71,16 +72,39 @@ const DATA_NOOII = fs.readFileSync('data_NOOII.txt', {encoding:'utf8'});
 
 let binaryData;
 
-part1(TEST1);
-part1(TEST2);
-part1(TEST3);
-part1(TEST4);
-part1(TEST5);
-part1(TEST6);
-part1(TEST7);
+// part1(TEST1);
+// part1(TEST2);
+// part1(TEST3);
+// part1(TEST4);
+// part1(TEST5);
+// part1(TEST6);
+// part1(TEST7);
 
 part1(DATA);
-part1(DATA_NOOII);
+// part1(DATA_NOOII);
+
+const TEST2_1 = fs.readFileSync('test2_1.txt', {encoding:'utf8'});
+const TEST2_2 = fs.readFileSync('test2_2.txt', {encoding:'utf8'});
+const TEST2_3 = fs.readFileSync('test2_3.txt', {encoding:'utf8'});
+const TEST2_4 = fs.readFileSync('test2_4.txt', {encoding:'utf8'});
+const TEST2_5 = fs.readFileSync('test2_5.txt', {encoding:'utf8'});
+const TEST2_6 = fs.readFileSync('test2_6.txt', {encoding:'utf8'});
+const TEST2_7 = fs.readFileSync('test2_7.txt', {encoding:'utf8'});
+const TEST2_8 = fs.readFileSync('test2_8.txt', {encoding:'utf8'});
+
+
+
+// part2(TEST2_1);
+// part2(TEST2_2);
+// part2(TEST2_3);
+// part2(TEST2_4);
+// part2(TEST2_5);
+// part2(TEST2_6);
+// part2(TEST2_7);
+// part2(TEST2_8);
+
+part2(DATA);
+// part2(DATA_NOOII);
 
 
 function part1(data) {
@@ -99,6 +123,17 @@ function processPacket(startI) {
 
     // console.log(packet);
     console.log(packet.versionSum);
+}
+
+function part2(data) {
+
+    binaryData = decodeToBinary(data);
+
+    let parsePacketRes = parsePacket(0);
+    
+    let packet = parsePacketRes.packet;
+
+    console.log(packet.value);
 }
 
 
@@ -274,8 +309,69 @@ function parseOperatorPacket(startI, header) {
         nextI = startI;
     }
 
+    operatorPacket.value = calculateOperatorValue(operatorPacket);
+
     return {
         operatorPacket: operatorPacket,
         nextI: nextI
     }
+}
+
+function calculateOperatorValue(operatorPacket) {
+
+    let typeID = operatorPacket.typeID;
+
+    let value;
+
+    // Packets with type ID 0 are sum packets - their value is the sum of the values of their sub-packets. 
+    // If they only have a single sub-packet, their value is the value of the sub-packet.
+    if (typeID === 0) {
+
+        value = operatorPacket.subPackets.reduce((sum, packet) => sum += packet.value, 0);
+    }
+    
+    // Packets with type ID 1 are product packets - their value is the result of multiplying together the values of their sub-packets. 
+    // If they only have a single sub-packet, their value is the value of the sub-packet.
+    if (typeID === 1) {
+
+        value = operatorPacket.subPackets.reduce((sum, packet) => sum *= packet.value, 1);
+    }
+
+    // Packets with type ID 2 are minimum packets - their value is the minimum of the values of their sub-packets.
+    if (typeID === 2) {
+
+        let values = operatorPacket.subPackets.map(a => a.value);
+        value = Math.min(...values);
+    }
+
+    // Packets with type ID 3 are maximum packets - their value is the maximum of the values of their sub-packets.
+    if (typeID === 3) {
+
+        let values = operatorPacket.subPackets.map(a => a.value);
+        value = Math.max(...values);
+    }
+
+    // Packets with type ID 5 are greater than packets - their value is 1 if the value of the first sub-packet is greater than 
+    // the value of the second sub-packet; otherwise, their value is 0. These packets always have exactly two sub-packets.
+    if (typeID === 5) {
+
+
+        value = operatorPacket.subPackets[0].value > operatorPacket.subPackets[1].value ? 1 : 0;
+    }
+
+    // Packets with type ID 6 are less than packets - their value is 1 if the value of the first sub-packet is less than 
+    // the value of the second sub-packet; otherwise, their value is 0. These packets always have exactly two sub-packets.
+    if (typeID === 6) {
+
+        value = operatorPacket.subPackets[0].value < operatorPacket.subPackets[1].value ? 1 : 0;
+    }
+
+    // Packets with type ID 7 are equal to packets - their value is 1 if the value of the first sub-packet is equal to 
+    // the value of the second sub-packet; otherwise, their value is 0. These packets always have exactly two sub-packets.
+    if (typeID === 7) {
+
+        value = operatorPacket.subPackets[0].value === operatorPacket.subPackets[1].value ? 1 : 0;
+    }
+
+    return value;
 }
