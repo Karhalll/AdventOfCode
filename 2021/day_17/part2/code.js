@@ -28,7 +28,7 @@ class Probe {
     }
 }
 
-const DATA = fs.readFileSync('data_test.txt', {encoding:'utf8'});
+const DATA = fs.readFileSync('data.txt', {encoding:'utf8'});
 const TARGET_AREA = getTargetAreaRange();
 
 part2();
@@ -38,18 +38,17 @@ function part2() {
     let output = 0;
     let validProbes = 0;
 
-    // let minX = minValidX();
-    // console.log(minX);
+    for (let x = 5; x <= TARGET_AREA.x[1]; x++) {
 
-    for (let x = 0; x <= TARGET_AREA.x[1]; x++) {
-
-        for (let y = TARGET_AREA.y[1]; y <= 1000; y++) {
+        for (let y = TARGET_AREA.y[0]; y <= -TARGET_AREA.y[0]; y++) {
 
             let velocity = new Vector2(x,y);
 
+            // console.log(velocity);
+
             let maxY = lunchProbe(velocity);
 
-            if (maxY > 0) {
+            if (maxY != false) {
                 validProbes++;
                 
                 if (maxY > output) {
@@ -111,14 +110,10 @@ function isValidStep(vector2) {
 
 function lunchProbe(initialVelocity) {
 
-    // console.log(initialVelocity);
-
     let defaultPos = new Vector2(0, 0);
     let probe = new Probe(defaultPos, initialVelocity);
 
-    let maxY = 0;
-
-    // console.log(probe);
+    let maxY;
 
     let nextProbe = nextStepProbe(probe);
 
@@ -131,16 +126,15 @@ function lunchProbe(initialVelocity) {
         }
 
         probe = nextProbe;
+
+        if (isInTargetArea(probe.position)) {
+            return maxY;
+        }
+
         nextProbe = nextStepProbe(probe);
     }
 
-    // console.log(probe);
-
-    if (isInTargetArea(probe.position)) {
-        return maxY;
-    } else {
-        return false;
-    }
+    return false;
 }
 
 function nextStepProbe(probe) {
@@ -164,15 +158,3 @@ function velocityCorelation(vector2) {
 
     return new Vector2(x,y);
 }
-
-// function minValidX() {
-
-//     let x = 0
-
-//     while (x <= TARGET_AREA.x[1]) {
-
-//         x
-
-//         x++;
-//     }
-// }
