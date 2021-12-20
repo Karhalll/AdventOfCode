@@ -1,6 +1,6 @@
 fs = require('fs')
-const DATA = fs.readFileSync('test1.txt', {encoding:'utf8'});
-const LINES = DATA.split('\n').map(line => JSON.parse(line.trim()));
+const DATA = fs.readFileSync('data.txt', {encoding:'utf8'});
+const LINES = DATA.split('\n').map(line => line.trim());
 
 class Pair {
     left;
@@ -9,108 +9,12 @@ class Pair {
     lvl;
     parent;
 
+    magnitude;
+    magL;
+    magR;
+
     toString() {
         return '[' + this.left + ',' + this.right + ']';
-    }
-}
-
-// let pair = createPair([[[[[9,8],1],2],3],4], undefined, 0);
-
-// console.log(pair.toString());
-// explodeIfCan(pair);
-
-// // while (splitIfCan(pair) === true) {
-// //     explodeIfCan(pair);
-// // }
-
-// console.log(pair.toString());
-
-function explodeIfCan(pair) {
-
-    if (typeof pair === 'number') {
-        return false;
-    }
-
-    if (pair.lvl >= 4) {
-
-        explode(pair);
-        return true;
-
-    } else {
-
-        if (explodeIfCan(pair.left) === true) {
-            pair.left = 0;
-            return false;
-        }
-
-        if (explodeIfCan(pair.right) === true) {
-            pair.right = 0;
-            return false;
-        }
-
-        return false;
-    }
-}
-
-function splitIfCan(pair) {
-
-    if (typeof pair.left === 'number') {
-        if (pair.left >= 10) {
-            pair.left = split(pair.left, pair, pair.lvl);
-            return true;
-        } else {
-            return;
-        }
-    }    
-
-    if (typeof pair.right === 'number') {
-        if (pair.right >= 10) {
-            pair.right = split(pair.right, pair, pair.lvl);
-            return true;
-        } else {
-            return;
-        }
-    } 
-
-    if (splitIfCan(pair.left) === true) return true;
-    if (splitIfCan(pair.right) === true) return true;
-
-    return false;
-}
-
-function explode(pair) {
-
-    let left = pair.left;
-    let right = pair.right;
-
-    let parent = pair.parent;
-    
-    transferUP(parent, left, right);
-}
-
-function transferUP(pair, left, right) {
-
-    transferLeft(pair.left, left);
-    transferRight(pair.right, right);
-}
-
-function transferLeft(pair, left) {
-
-    if (typeof pair.left === 'number') {
-        pair.left += left;
-    } else {
-        if (pair.parent === undefined) return;
-        transferLeft(pair.parent, left);
-    }
-}
-
-function transferRight(pair, right) {
-
-    if (typeof pair.right === 'number') {
-        pair.right += right;
-    } else {
-        if (pair.parent === undefined) return;
-        transferRight(pair.parent, right);
     }
 }
 
@@ -121,27 +25,78 @@ function createPair(array, parent, lvl) {
     pair.lvl = lvl;
 
     if (Array.isArray(array[0])) {
-        pair.left = createPair(array[0], pair, lvl + 1);   
+        pair.left = createPair(array[0], pair, lvl + 1);
+        pair.magL = pair.left.magnitude;  
     } else {
         pair.left = array[0];
-    }
+        pair.magL = array[0];
+    } 
 
     if (Array.isArray(array[1])) {
         pair.right = createPair(array[1], pair, lvl + 1);
+        pair.magR = pair.right.magnitude;
     } else {
         pair.right = array[1];
+        pair.magR = array[1];
     }
+
+    pair.magnitude = 3*pair.magL + 2*pair.magR;
 
     return pair;
 }
 
+let lineSum = LINES[0];
 
-let sNumber = '[[[[[4,3],4],4],[7,[[8,4],9]]],[1,1]]';
-console.log(sNumber);
+for (let lineI = 1; lineI < LINES.length; lineI++) {
 
-let reducesNumber = reduceNumber(sNumber);
+    let nextLine = LINES[lineI];
+    let numberToReduce = '[' + lineSum + ',' + nextLine + ']';
 
-console.log(reducesNumber);
+    lineSum = reduceNumber(numberToReduce);
+}
+
+let sumMagnitude = magnitude(lineSum);
+console.log(sumMagnitude);
+
+let maxMagnitude = 0;
+
+for (let first = 0; first < LINES.length - 1; first++) {
+
+    for (let second = first + 1; second < LINES.length; second++) {
+
+        let firstLine = LINES[first];
+        let secondLine = LINES[second];
+
+        let numberToReduce1 = '[' + firstLine + ',' + secondLine + ']';
+        let numberToReduce2 = '[' + secondLine + ',' + firstLine + ']';
+
+        let reduced1 = reduceNumber(numberToReduce1);
+        let reduced2 = reduceNumber(numberToReduce2);
+
+        let magnitude1 = magnitude(reduced1);
+        if (maxMagnitude < magnitude1) {
+            maxMagnitude = magnitude1;
+        }
+
+        let magnitude2 = magnitude(reduced2);
+        if (maxMagnitude < magnitude2) {
+            maxMagnitude = magnitude2;
+        }
+
+    }
+}
+
+console.log(maxMagnitude);
+
+
+function magnitude(string) {
+
+    let arr = JSON.parse(string);
+    let pair = createPair(arr, undefined, 0);
+
+    return pair.magnitude;
+}
+
 
 function reduceNumber(number) {
 
@@ -210,7 +165,7 @@ function getArrayToExplode(string, startI) {
 
     let staringArr = '';
 
-    for (let i = startI; i < sNumber.length; i++) {
+    for (let i = startI; i < string.length; i++) {
 
         if (string[i] === ']') {
             staringArr += string[i];
