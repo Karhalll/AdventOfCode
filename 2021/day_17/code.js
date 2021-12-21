@@ -28,27 +28,34 @@ class Probe {
     }
 }
 
-const DATA = fs.readFileSync('data.txt', {encoding:'utf8'});
+const DATA = fs.readFileSync('data_test.txt', {encoding:'utf8'});
 const TARGET_AREA = getTargetAreaRange();
 
-part2();
+part1();
 
-function part2() {
+function part1() {
+
+    // let velocity = new Vector2(6, 9);
+    // let velocity = new Vector2(7, 2);
+    // let velocity = new Vector2(6, 3);
+    // let velocity = new Vector2(9, 0);
+    // let velocity = new Vector2(17, -4);
 
     let output = 0;
     let validProbes = 0;
 
-    for (let x = 5; x <= TARGET_AREA.x[1]; x++) {
+    // let minX = minValidX();
+    // console.log(minX);
 
-        for (let y = TARGET_AREA.y[0]; y <= -TARGET_AREA.y[0]; y++) {
+    for (let x = 0; x <= TARGET_AREA.x[1]; x++) {
+
+        for (let y = TARGET_AREA.y[1]; y <= 1000; y++) {
 
             let velocity = new Vector2(x,y);
 
-            // console.log(velocity);
-
             let maxY = lunchProbe(velocity);
 
-            if (maxY != false) {
+            if (maxY > 0) {
                 validProbes++;
                 
                 if (maxY > output) {
@@ -110,31 +117,36 @@ function isValidStep(vector2) {
 
 function lunchProbe(initialVelocity) {
 
+    // console.log(initialVelocity);
+
     let defaultPos = new Vector2(0, 0);
     let probe = new Probe(defaultPos, initialVelocity);
 
-    let maxY;
+    let maxY = 0;
+
+    // console.log(probe);
 
     let nextProbe = nextStepProbe(probe);
 
     while (isValidStep(nextProbe.position)) {
 
-        let probeY = nextProbe.position.y;
+        let probeY = probe.position.y;
 
         if (probeY > maxY) {
-            maxY = probeY;
+            maxY = probe.position.y;
         }
 
         probe = nextProbe;
-
-        if (isInTargetArea(probe.position)) {
-            return maxY;
-        }
-
         nextProbe = nextStepProbe(probe);
     }
 
-    return false;
+    // console.log(probe);
+
+    if (isInTargetArea(probe.position)) {
+        return maxY;
+    } else {
+        return false;
+    }
 }
 
 function nextStepProbe(probe) {
@@ -158,3 +170,15 @@ function velocityCorelation(vector2) {
 
     return new Vector2(x,y);
 }
+
+// function minValidX() {
+
+//     let x = 0
+
+//     while (x <= TARGET_AREA.x[1]) {
+
+//         x
+
+//         x++;
+//     }
+// }

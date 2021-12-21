@@ -111,17 +111,9 @@ function part1(data) {
 
     binaryData = decodeToBinary(data);
 
-    let packet = processPacket(0);
-}
-
-function processPacket(startI) {
-
-    let parsePacketRes = parsePacket(startI);
-    
+    let parsePacketRes = parsePacket(0);  
     let packet = parsePacketRes.packet;
-    let nextI = parsePacketRes.nextI;
 
-    // console.log(packet);
     console.log(packet.versionSum);
 }
 
@@ -130,13 +122,10 @@ function part2(data) {
     binaryData = decodeToBinary(data);
 
     let parsePacketRes = parsePacket(0);
-    
     let packet = parsePacketRes.packet;
 
     console.log(packet.value);
 }
-
-
 
 function bitesToInt(binaryNumber) {
     return parseInt(binaryNumber, 2);
