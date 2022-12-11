@@ -42,14 +42,12 @@ console.log("Part 1: " + part1());
 part2();
 
 function part1() {
-  var instructions = getInstructions(data);
-
   var cycles = [20, 60, 100, 140, 180, 220];
-
   var mapOfX = {};
-
   var X = 1;
   var currentCycle = 1;
+
+  var instructions = getInstructions(data);
   for (var i = 0; i < instructions.length; i++) {
     var commandObj = instructions[i];
     var command = commandObj.command;
@@ -71,9 +69,9 @@ function part1() {
   }
 
   var signalStrengths = cycles.map((cycle) => {
-    var xValue = Number.parseInt(mapOfX[cycle]);
-
     var cycleToCheck = cycle;
+    
+    var xValue = Number.parseInt(mapOfX[cycle]);
     while (!xValue) {
       xValue = Number.parseInt(mapOfX[cycleToCheck]);
       cycleToCheck--;
